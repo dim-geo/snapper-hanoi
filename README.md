@@ -4,7 +4,9 @@ snapper-hanoi
 This is a Python script that creates and manages a series of snapper
 snapshots which are rotated according to the Towers of Hanoi backup
 scheme.
+Based on: https://github.com/asciiphil/zfs-hanoi 
 
+Snapper: http://snapper.io/
 
 The Towers of Hanoi Scheme
 --------------------------
@@ -52,7 +54,7 @@ Requirements
 The script should work with Python versions as old as 2.4.  It has
 been tested with Python 2.6 and 2.7.  No Python modules are necessary.
 
-The snapper command line programs should be available.
+The snapper command line program should be available.
 
 
 Usage
