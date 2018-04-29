@@ -13,7 +13,7 @@ parser.add_option('-s', '--snapper', default='snapper', help='Path to the snappe
 parser.add_option('-m', '--keep-min', type='int', default=1, help='The minimum number of consecutive recent snapshots to keep.')
 parser.add_option('-v', '--verbose', action='store_true', help='Be verbose about what we\'re doing.')
 parser.add_option('-t', '--tapes', type='int', default=0, help='number of tapes that we theoretically have')
-parser.add_option('-n', '--number-tape', type='int', default=1, help='number of backups per tape that we theoretically have')
+parser.add_option('-n', '--number-tape', type='int', default=sys.maxint, help='number of backups per tape that we theoretically have')
 
 (options, args) = parser.parse_args()
 
@@ -36,27 +36,19 @@ class SnapshotList:
             return 0
         else:
             return max([counter for counter, name, number in self.snapshots])
-        
+
     def find_tape(counter):
-        if options.tapes==0:
-            j=0
-            while True:
-                print counter
-                if(counter % 2 == 1):
-                    return j
-                j+=1
-                counter = counter>>1
-        else:
-            for j in xrange(0,options.tapes-1):
-                i=0
+            for j in xrange(0, options.tapes):
+                i = 0
                 while True:
-                    if ((2**j)*i==counter):
+                    #print 'j',j,'i',i
+                    if ((2 ** (j + 1)) * i + (2 ** j) == counter):
                         return j
-                    if ( (2**(j+1))*i + (2**j)==counter ):
-                        return j
-                    if (2**j)*i>counter and (2**(j+1)*i)+(2**j)>counter :
+                    if (2 ** (j + 1)) * i + (2 ** j) > counter:
                         break
-                    i+=1
+                    i += 1
+            else:
+                return j
 
     def next_snapshot(self):
         return '%s_%s_%05x' % (options.prefix, time.strftime('%Y-%m-%dT%H:%M%z'), self.max_counter + 1)
