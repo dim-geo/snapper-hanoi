@@ -39,16 +39,18 @@ class SnapshotList:
             return max([counter for counter, number in self.snapshots])
 
     def find_tape(counter):
-            for j in xrange(0, options.tapes):
-                i = 0
-                while True:
+            if counter & 1 == 1 or option.tapes == 1:
+                return 0
+            power_of_two = 2
+            for j in xrange(1, option.tapes):
+                possible_day=power_of_two
+                while(possible_day <=counter):
+                    print j,possible_day
                     #print (2 ** (j + 1)) * i + (2 ** j)
-                    possible_day = (i<<(j+1))+ (1<<j)
                     if (possible_day == counter):
                         return j
-                    if (possible_day > counter:
-                        break
-                    i += 1
+                    possible_day+= (power_of_two<<1)
+                power_of_two<<=1
             else:
                 return j
 
