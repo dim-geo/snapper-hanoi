@@ -27,7 +27,7 @@ class SnapshotList:
         m = re.search('\s*(\d+)\s*\|.+\|\s+%s_[^_]+_([0-9a-f]+)\s+' % re.escape(options.prefix),snapshot_name)
         if m:
             #print m.group(1),m.group(2)
-            self.snapshots.append((int(m.group(2), 16), snapshot_name,int(m.group(1))))
+            self.snapshots.append((int(m.group(2), 16),int(m.group(1))))
         elif options.verbose:
             print 'Skipping snapshot:', snapshot_name
 
@@ -36,16 +36,17 @@ class SnapshotList:
         if len(self.snapshots) == 0:
             return 0
         else:
-            return max([counter for counter, name, number in self.snapshots])
+            return max([counter for counter, number in self.snapshots])
 
     def find_tape(counter):
             for j in xrange(0, options.tapes):
                 i = 0
                 while True:
-                    #print 'j',j,'i',i
-                    if ((2 ** (j + 1)) * i + (2 ** j) == counter):
+                    #print (2 ** (j + 1)) * i + (2 ** j)
+                    possible_day = (i<<(j+1))+ (1<<j)
+                    if (possible_day == counter):
                         return j
-                    if (2 ** (j + 1)) * i + (2 ** j) > counter:
+                    if (possible_day > counter:
                         break
                     i += 1
             else:
@@ -58,9 +59,9 @@ class SnapshotList:
         if self.max_counter <= 0:
             return
         ordered_snapshots = list(reversed(sorted(self.snapshots)))
-        valid_indices = set([i for i, name, number in ordered_snapshots[:options.keep_min]])
+        valid_indices = set([i for i, number in ordered_snapshots[:options.keep_min]])
         tapedictionary = defaultdict(list)
-        for index,name,number in ordered_snapshots:
+        for index,number in ordered_snapshots:
             tape=find_tape(index)
             tapedictionary[tape].append(index)
         for tape in tapedictionary.keys():
@@ -72,7 +73,7 @@ class SnapshotList:
                 valid_indices.add(index)
         if options.verbose:
             print 'valid indices are:', ' '.join([str(i) for i in sorted(valid_indices)])
-        for i, name, number in self.snapshots:
+        for i, number in self.snapshots:
             if i not in valid_indices:
                 yield number
 
