@@ -38,18 +38,15 @@ class SnapshotList:
         else:
             return max([counter for counter, number in self.snapshots])
 
+#tape 0 contains days modulo 2 == 1
+#tape 1 contains days modulo 4 == 2
+#tape n contains days modulo 2^(n+1) == 2^n
+#modulo 2^n can be replaced by bitwise and with 2^n - 1 (in binary 111111...)
     def find_tape(counter):
-            if counter & 1 == 1 or option.tapes == 1:
-                return 0
-            power_of_two = 2
-            for j in xrange(1, option.tapes):
-                possible_day=power_of_two
-                while(possible_day <=counter):
-                    print j,possible_day
-                    #print (2 ** (j + 1)) * i + (2 ** j)
-                    if (possible_day == counter):
-                        return j
-                    possible_day+= (power_of_two<<1)
+            power_of_two=1
+            for j in xrange(0, option.tapes):
+                if counter & ((power_of_two<<1) - 1 ) == power_of_two:
+                    return j
                 power_of_two<<=1
             else:
                 return j
