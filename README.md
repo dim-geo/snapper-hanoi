@@ -72,5 +72,18 @@ Options of note are:
    retain.  The Towers of Hanoi scheme always keeps at least the last
    two snapshots, but the third-most-recent snapshot isn't always
    available.  This option lets you tweak that.  For example, if you
-   take snapshots every day, `-m 14` will give you a week's worth of
+   take snapshots every day, `-m 7` will give you a week's worth of
    daily snapshots before they start getting pruned.
+ * `-t`, `--tapes`: The maximum number of tapes to use. Default value
+   is infinite (`sys.maxint`). Typically, Towers of Hanoi scheme
+   use a specific number of tapes. Useful when you want to limit the
+   maximum number of snapshots to be kept.
+ * `-n`, `---number-tape`: The maximum number of backups per tape to keep.
+   Default value is 1.
+
+Script always excludes first the `-m` snapshots and then examine the
+remaining ones to find the tape they belong to. After that it prunes
+the excessive ones, respecting `-t` and `-n` options.
+
+Thus, the number of snapshots that are used is: `m+n*t`, when tapes are finite.
+When tapes are infinite: `m+n*log2(days)`
