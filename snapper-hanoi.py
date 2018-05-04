@@ -18,6 +18,20 @@ parser.add_option('-n', '--number-tape', type='int', default=1, help='number of 
 
 (options, args) = parser.parse_args()
 
+#tape 0 contains days modulo 2 == 1
+#tape 1 contains days modulo 4 == 2
+#tape n contains days modulo 2^(n+1) == 2^n
+#modulo 2^n can be replaced by bitwise and with 2^n - 1 (in binary 111111...)
+def find_tape(counter):
+            power_of_two=1
+            for j in xrange(0, options.tapes):
+                modulo_mask=(power_of_two<<1) - 1
+                if counter & modulo_mask == power_of_two:
+                    return j
+                power_of_two<<=1
+            else:
+                return j
+
 class SnapshotList:
     def __init__(self):
         self.snapshots = []
@@ -38,19 +52,6 @@ class SnapshotList:
         else:
             return max([counter for counter, number in self.snapshots])
 
-#tape 0 contains days modulo 2 == 1
-#tape 1 contains days modulo 4 == 2
-#tape n contains days modulo 2^(n+1) == 2^n
-#modulo 2^n can be replaced by bitwise and with 2^n - 1 (in binary 111111...)
-    def find_tape(counter):
-            power_of_two=1
-            for j in xrange(0, option.tapes):
-                if counter & ((power_of_two<<1) - 1 ) == power_of_two:
-                    return j
-                power_of_two<<=1
-            else:
-                return j
-
     def next_snapshot(self):
         return '%s_%s_%05x' % (options.prefix, time.strftime('%Y-%m-%dT%H:%M%z'), self.max_counter + 1)
 
@@ -58,11 +59,12 @@ class SnapshotList:
         if self.max_counter <= 0:
             return
         ordered_snapshots = list(reversed(sorted(self.snapshots)))
-        valid_indices = set([i for i, number in ordered_snapshots[:options.keep_min]])
+        valid_indices = set(ordered_snapshots[:options.keep_min])
         tapedictionary = defaultdict(list)
-        for index,number in ordered_snapshots:
-            tape=find_tape(index)
-            tapedictionary[tape].append(index)
+        for pair in ordered_snapshots[options.keep_min:]:
+            #print pair
+            tape=find_tape(pair[0])
+            tapedictionary[tape].append(pair)
         for tape in tapedictionary.keys():
             days_per_tape_list=tapedictionary[tape]
             days_per_tape_list=days_per_tape_list[:options.number_tape]
@@ -72,9 +74,8 @@ class SnapshotList:
                 valid_indices.add(index)
         if options.verbose:
             print 'valid indices are:', ' '.join([str(i) for i in sorted(valid_indices)])
-        for i, number in self.snapshots:
-            if i not in valid_indices:
-                yield number
+        for i, number in set(self.snapshots)-valid_indices:
+            yield number
 
 def generate_list(dataset):
     snapshots = SnapshotList()
