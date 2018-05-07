@@ -15,6 +15,8 @@ parser.add_option('-m', '--keep-min', type='int', default=1, help='The minimum n
 parser.add_option('-v', '--verbose', action='store_true', help='Be verbose about what we\'re doing.')
 parser.add_option('-t', '--tapes', type='int', default=sys.maxint, help='number of tapes that we theoretically have')
 parser.add_option('-n', '--number-tape', type='int', default=1, help='number of backups per tape that we theoretically have')
+parser.add_option('-d', '--diff', action='store_true', help='keep new snapshot only if it differs from the previous snapshot')
+
 
 (options, args) = parser.parse_args()
 
@@ -97,6 +99,27 @@ if options.verbose:
   print 'running:', ' '.join(cmd)
 subprocess.call(cmd)
 snapshots = generate_list(dataset)
+
+if options.diff:
+  top_snapshots=list(reversed(sorted(snapshots.snapshots)))[:2]
+  cmd1 = [options.snapper,'-c',dataset,'status',str(top_snapshots[1][1])+'..'+str(top_snapshots[0][1])]
+  cmd2 = ['wc','-l']
+  if options.verbose:
+    print 'running:',' '.join(cmd1),'|', ' '.join(cmd2)
+  p1=subprocess.Popen(cmd1, stdout=subprocess.PIPE)
+  p2=subprocess.Popen(cmd2,stdin=p1.stdout,stdout=subprocess.PIPE)
+  p1.stdout.close()
+  diff=int(p2.communicate()[0].strip())
+  if diff == 0:
+    cmd = [options.snapper,'-c',dataset, 'delete',str(top_snapshots[0][1])]
+    if options.verbose:
+      print 'running:', ' '.join(cmd)
+    print 'No differences between current and previous snapshot, deleting'
+    subprocess.call(cmd)
+    snapshots = generate_list(dataset)
+  else:
+    print 'Found differences between current and previous snapshot'
+
 for obsolete in snapshots.obsolete_snapshots():
     cmd = [options.snapper,'-c',dataset, 'delete',str(obsolete)]
     if options.verbose:
